@@ -1,7 +1,6 @@
 const path = require('path'),
   osu = require('node-os-utils'),
   os = require('os');
-const { deflateSync } = require('zlib');
 
 const cpu = osu.cpu,
   mem = osu.mem;
@@ -16,6 +15,12 @@ const cpuModel = document.querySelector('#cpu-model');
   (memTotal = document.querySelector('#mem-total'));
 
 let cpuOverload = 5;
+
+sendNotification({
+  title: 'CPU Overload',
+  body: `CPU usage is over ${cpuOverload}%`,
+  icon: path.join(__dirname, 'img/icon.png')
+});
 
 setInterval(() => {
   cpu.usage().then(info => {
@@ -51,4 +56,9 @@ function secondsToDhms(sec) {
   const s = Math.floor(sec % 60);
 
   return `${d}d, ${h}h, ${m}m, ${s}s`;
+}
+
+// Send notification
+function sendNotification(options) {
+  new Notification(options.title, options);
 }
