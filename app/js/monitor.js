@@ -14,7 +14,8 @@ const cpuModel = document.querySelector('#cpu-model');
   (sysUptime = document.querySelector('#sys-uptime')),
   (memTotal = document.querySelector('#mem-total'));
 
-let cpuOverload = 5;
+let cpuOverload = 5,
+  alertFrequency = 1;
 
 sendNotification({
   title: 'CPU Overload',
@@ -30,6 +31,16 @@ setInterval(() => {
     info > cpuOverload
       ? (cpuProgress.style.background = 'red')
       : (cpuProgress.style.background = '#30c88b');
+
+    if (info >= cpuOverload && runNotify(alertFrequency)) {
+      sendNotification({
+        title: 'CPU Overload',
+        body: `CPU usage is over ${cpuOverload}%`,
+        icon: path.join(__dirname, 'img/icon.png')
+      });
+
+      localStorage.setItem('lastNotify', +new Date());
+    }
   });
 
   cpu.free().then(info => {
@@ -61,4 +72,21 @@ function secondsToDhms(sec) {
 // Send notification
 function sendNotification(options) {
   new Notification(options.title, options);
+}
+
+// Check how much time has passed since the last notification was displayed
+function runNotify(frequency) {
+  if (localStorage.getItem('lastNotify') === null) {
+    // Store timestamp
+    localStorage.setItem('lastNotify', +new Date());
+    return true;
+  }
+
+  const notifyTime = new Date(parseInt(localStorage.getItem('lastNotify'))),
+    now = new Date();
+
+  const diffTime = Math.abs(now - notifyTime);
+  const minutesPassed = Math.ceil(diffTime / (1000 * 60));
+
+  return minutesPassed > frequency;
 }
