@@ -1,5 +1,3 @@
-const { ipcRenderer } = require('electron');
-
 const settingsForm = document.querySelector('#settings-form'),
   cpuOverloadInput = document.querySelector('#cpu-overload'),
   alertFrequencyInput = document.querySelector('#alert-frequency'),

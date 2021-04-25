@@ -1,6 +1,7 @@
 const path = require('path'),
   osu = require('node-os-utils'),
-  os = require('os');
+  os = require('os'),
+  { ipcRenderer } = require('electron');
 
 const cpu = osu.cpu,
   mem = osu.mem;
@@ -14,8 +15,13 @@ const cpuModel = document.querySelector('#cpu-model');
   (sysUptime = document.querySelector('#sys-uptime')),
   (memTotal = document.querySelector('#mem-total'));
 
-let cpuOverload = 5,
-  alertFrequency = 1;
+let cpuOverload, alertFrequency;
+
+// Get settings
+ipcRenderer.on('settings:get', (e, settings) => {
+  cpuOverload = +settings.cpuOverload;
+  alertFrequency = +settings.alertFrequency;
+});
 
 sendNotification({
   title: 'CPU Overload',
