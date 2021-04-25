@@ -1,5 +1,6 @@
-const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, Tray } = require('electron');
 const log = require('electron-log');
+const path = require('path');
 const Store = require('./Store');
 
 // Set env
@@ -8,7 +9,7 @@ process.env.NODE_ENV = 'development';
 const isDev = process.env.NODE_ENV !== 'production',
   isMac = process.platform === 'darwin';
 
-let mainWindow;
+let mainWindow, tray;
 
 // Initialize store & defaults
 const store = new Store({
@@ -29,6 +30,8 @@ function createMainWindow() {
     icon: `${__dirname}/assets/icons/icon.png`,
     resizable: isDev ? true : false,
     backgroundColor: 'white',
+    show: false,
+    opacity: 0.9,
     webPreferences: {
       nodeIntegration: true
     }
@@ -48,12 +51,49 @@ app.on('ready', () => {
 
   const mainMenu = Menu.buildFromTemplate(menu);
   Menu.setApplicationMenu(mainMenu);
+
+  mainWindow.on('close', e => {
+    if (!app.isQuitting) {
+      e.preventDefault(), mainWindow.hide();
+    }
+    return true;
+  });
+
+  // Tray icon
+  const icon = path.join(__dirname, 'assets/icons/tray_icon.png');
+  tray = new Tray(icon);
+  tray.on('click', () => {
+    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+  });
+  tray.on('right-click', () => {
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Quit',
+        click: () => {
+          app.isQuitting = true;
+          app.quit();
+        }
+      }
+    ]);
+    tray.popUpContextMenu(contextMenu);
+  });
+
+  mainWindow.on('ready', () => (mainWindow = null));
 });
 
 const menu = [
   ...(isMac ? [{ role: 'appMenu' }] : []),
   {
     role: 'fileMenu'
+  },
+  {
+    label: 'View',
+    submenu: [
+      {
+        label: 'Toggle Navigation',
+        click: () => mainWindow.webContents.send('nav:toggle')
+      }
+    ]
   },
   ...(isDev
     ? [

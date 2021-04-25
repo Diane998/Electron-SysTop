@@ -1,7 +1,8 @@
 const settingsForm = document.querySelector('#settings-form'),
   cpuOverloadInput = document.querySelector('#cpu-overload'),
   alertFrequencyInput = document.querySelector('#alert-frequency'),
-  alert = document.querySelector('#alert');
+  alert = document.querySelector('#alert'),
+  nav = document.querySelector('#nav');
 
 // Get settings
 ipcRenderer.on('settings:get', (e, settings) => {
@@ -33,3 +34,8 @@ function showAlert(msg) {
 
   setTimeout(() => alert.classList.add('hide'), 3000);
 }
+
+// Toggle Navigation
+ipcRenderer.on('nav:toggle', () => {
+  nav.classList.toggle('hide');
+});
